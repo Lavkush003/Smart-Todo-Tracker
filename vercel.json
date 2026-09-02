@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/dist",
+  "framework": "vite",
+  "installCommand": "npm install --workspaces --include-workspace-root",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
