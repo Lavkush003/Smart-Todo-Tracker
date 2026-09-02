@@ -36,7 +36,8 @@ const Assistant = () => {
     setIsLoading(true);
 
     try {
-      const data = await sendChatMessage(msg);
+      const responseData = await sendChatMessage(msg);
+      const data = responseData.data;
       
       let assistantMsg = data.reply;
       

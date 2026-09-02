@@ -84,8 +84,8 @@ const TodoDetails = () => {
   const handleGenerateSuggestion = async () => {
     setIsGenerating(true);
     try {
-      const data = await sendChatMessage(`Analyze this task and give me a suggested next action, priority, and estimated difficulty for: ${todo.title}. Description: ${todo.description}`);
-      setAiSuggestion(data.reply);
+      const responseData = await sendChatMessage(`Analyze this task and give me a suggested next action, priority, and estimated difficulty for: ${todo.title}. Description: ${todo.description}`);
+      setAiSuggestion(responseData.data.reply);
     } catch (err) {
       alert('Failed to get AI suggestions.');
     } finally {

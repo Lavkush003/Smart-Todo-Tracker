@@ -12,6 +12,14 @@ const db = new Database(config.dbPath);
 db.pragma('journal_mode = WAL');
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS todos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
@@ -25,8 +33,15 @@ db.exec(`
     notes TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    completed_at TEXT
+    completed_at TEXT,
+    user_id INTEGER REFERENCES users(id)
   );
 `);
+
+const tableInfo = db.pragma('table_info(todos)');
+const hasUserId = tableInfo.some(column => column.name === 'user_id');
+if (!hasUserId) {
+  db.exec(`ALTER TABLE todos ADD COLUMN user_id INTEGER REFERENCES users(id)`);
+}
 
 export default db;

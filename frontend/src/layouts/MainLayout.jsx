@@ -1,15 +1,23 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, MessageSquare, BarChart3, Settings, Bot, Plus } from 'lucide-react';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, MessageSquare, BarChart3, Settings, Bot, Plus, LogOut } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const MainLayout = () => {
   const [theme, setTheme] = useState(() => localStorage.getItem('ziptrip-theme') || 'light');
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.classList.toggle('dark', theme === 'dark');
     localStorage.setItem('ziptrip-theme', theme);
   }, [theme]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const navItems = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -49,7 +57,7 @@ const MainLayout = () => {
           ))}
         </nav>
 
-        <div className="border-t border-[var(--border)] p-4">
+        <div className="border-t border-[var(--border)] p-4 space-y-2">
           <button
             type="button"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -57,6 +65,15 @@ const MainLayout = () => {
           >
             <Settings className="h-5 w-5" />
             Toggle Theme
+          </button>
+          
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 transition-all hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
+          >
+            <LogOut className="h-5 w-5" />
+            Logout
           </button>
         </div>
       </aside>
@@ -66,8 +83,11 @@ const MainLayout = () => {
         <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[var(--panel)]/80 px-6 backdrop-blur-md">
           <h2 className="text-lg font-semibold text-[var(--text-strong)]">Workspace</h2>
           <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-[var(--text-muted)] hidden sm:block">
+              {user?.name || 'User'}
+            </span>
             <div className="h-8 w-8 overflow-hidden rounded-full border border-[var(--border)] bg-slate-200">
-              <img src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" alt="User" />
+              <img src={`https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=6366f1&color=fff`} alt="User" />
             </div>
           </div>
         </header>

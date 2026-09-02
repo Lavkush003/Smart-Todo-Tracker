@@ -7,19 +7,26 @@ import Assistant from './pages/Assistant';
 import Analytics from './pages/Analytics';
 import MainLayout from './layouts/MainLayout';
 import NotFound from './pages/NotFound';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   return (
     <Routes>
-      <Route element={<MainLayout />}>
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      
+      <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/todo" element={<TodoDetails />} />
         <Route path="/create" element={<CreateTodo />} />
         <Route path="/edit" element={<EditTodo />} />
         <Route path="/assistant" element={<Assistant />} />
         <Route path="/analytics" element={<Analytics />} />
-        <Route path="*" element={<NotFound />} />
       </Route>
+      
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
