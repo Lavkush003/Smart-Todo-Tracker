@@ -1,14 +1,18 @@
 import { body, param, validationResult } from 'express-validator';
 
-const statusOptions = ['pending', 'in_progress', 'completed'];
-const priorityOptions = ['low', 'medium', 'high'];
+const statusOptions = ['todo', 'in_progress', 'completed', 'archived'];
+const priorityOptions = ['low', 'medium', 'high', 'urgent'];
 
 export const validateTodoPayload = [
   body('title').trim().notEmpty().withMessage('Title is required').isLength({ min: 1, max: 120 }).withMessage('Title must be between 1 and 120 characters'),
-  body('description').optional({ values: 'falsy' }).trim().isLength({ max: 1000 }).withMessage('Description must be 1000 characters or less'),
-  body('status').optional().isIn(statusOptions).withMessage('Status must be one of: pending, in_progress, completed'),
-  body('priority').optional().isIn(priorityOptions).withMessage('Priority must be one of: low, medium, high'),
-  body('due_date').optional({ values: 'null' }).matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Due date must be in YYYY-MM-DD format'),
+  body('description').optional({ values: 'falsy' }).trim().isLength({ max: 2000 }).withMessage('Description must be 2000 characters or less'),
+  body('status').optional().isIn(statusOptions).withMessage(`Status must be one of: ${statusOptions.join(', ')}`),
+  body('priority').optional().isIn(priorityOptions).withMessage(`Priority must be one of: ${priorityOptions.join(', ')}`),
+  body('due_date').optional({ values: 'null' }).matches(/^\d{4}-\d{2}-\d{2}(T.*)?$/).withMessage('Due date must be in YYYY-MM-DD format'),
+  body('tags').optional().isArray().withMessage('Tags must be an array'),
+  body('category').optional().isString().trim(),
+  body('estimated_time').optional().isString().trim(),
+  body('notes').optional().isString().trim(),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

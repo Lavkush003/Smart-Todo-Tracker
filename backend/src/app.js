@@ -16,7 +16,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/todos', todoRoutes);
-app.use('/api/ai', aiRoutes);
+app.use('/api/chat', aiRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -4,13 +4,16 @@ import {
   getAllTodos,
   getTodoById,
   updateTodo,
+  getStats,
+  getTodayTodos,
+  getOverdueTodos
 } from '../services/todoService.js';
 import { errorResponse, successResponse } from '../utils/response.js';
 
 export const listTodos = (req, res) => {
   try {
-    const { search = '', status = '', priority = '', sort = 'created_at_desc' } = req.query;
-    const todos = getAllTodos({ search, status, priority, sort });
+    const { search = '', status = '', priority = '', category = '', sort = 'created_at_desc' } = req.query;
+    const todos = getAllTodos({ search, status, priority, category, sort });
     return successResponse(res, 200, todos, 'Todos fetched successfully');
   } catch (error) {
     return errorResponse(res, 500, 'Failed to fetch todos', error.message);
@@ -59,5 +62,32 @@ export const deleteTodoItem = (req, res) => {
     return successResponse(res, 200, { id: Number(req.params.id) }, 'Todo deleted successfully');
   } catch (error) {
     return errorResponse(res, 500, 'Failed to delete todo', error.message);
+  }
+};
+
+export const getTodoStats = (req, res) => {
+  try {
+    const stats = getStats();
+    return successResponse(res, 200, stats, 'Stats fetched successfully');
+  } catch (error) {
+    return errorResponse(res, 500, 'Failed to fetch stats', error.message);
+  }
+};
+
+export const getTodayTasks = (req, res) => {
+  try {
+    const todos = getTodayTodos();
+    return successResponse(res, 200, todos, 'Today tasks fetched successfully');
+  } catch (error) {
+    return errorResponse(res, 500, 'Failed to fetch today tasks', error.message);
+  }
+};
+
+export const getOverdueTasks = (req, res) => {
+  try {
+    const todos = getOverdueTodos();
+    return successResponse(res, 200, todos, 'Overdue tasks fetched successfully');
+  } catch (error) {
+    return errorResponse(res, 500, 'Failed to fetch overdue tasks', error.message);
   }
 };

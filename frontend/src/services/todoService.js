@@ -32,17 +32,22 @@ export const deleteTodo = async (id) => {
   return response.data;
 };
 
-export const parseTaskWithAI = async (text) => {
-  const response = await api.post('/ai/parse-task', { text });
+export const fetchStats = async () => {
+  const response = await api.get('/todos/stats');
   return response.data;
 };
 
-export const getInsightWithAI = async () => {
-  const response = await api.get('/ai/insight');
+export const fetchTodayTodos = async () => {
+  const response = await api.get('/todos/today');
   return response.data;
 };
 
-export const generateSubtasksWithAI = async (id) => {
-  const response = await api.post(`/ai/${id}/subtasks`);
+export const fetchOverdueTodos = async () => {
+  const response = await api.get('/todos/overdue');
+  return response.data;
+};
+
+export const sendChatMessage = async (message) => {
+  const response = await api.post('/chat', { message });
   return response.data;
 };

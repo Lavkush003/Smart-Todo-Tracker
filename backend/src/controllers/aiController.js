@@ -1,39 +1,18 @@
-import { generateSubtasksWithAI, getInsightWithAI, parseTaskWithAI } from '../services/aiService.js';
-import { getAllTodos, getTodoById } from '../services/todoService.js';
+import { processChatMessage } from '../services/aiService.js';
 import { errorResponse, successResponse } from '../utils/response.js';
 
-export const parseTask = async (req, res) => {
+export const handleChat = async (req, res) => {
   try {
-    const { text } = req.body;
-    if (!text) return errorResponse(res, 400, 'Text input is required');
-    
-    const parsedData = await parseTaskWithAI(text);
-    return successResponse(res, 200, parsedData, 'Task parsed successfully');
-  } catch (error) {
-    return errorResponse(res, 500, 'Failed to parse task', error.message);
-  }
-};
+    const { message } = req.body;
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      return errorResponse(res, 400, 'Message is required and must be a non-empty string');
+    }
 
-export const getInsight = async (req, res) => {
-  try {
-    const todos = getAllTodos({});
-    const insight = await getInsightWithAI(todos);
-    return successResponse(res, 200, { insight }, 'Insight generated successfully');
+    const responseData = await processChatMessage(message.trim());
+    return successResponse(res, 200, responseData, 'Chat processed successfully');
   } catch (error) {
-    return errorResponse(res, 500, 'Failed to generate insight', error.message);
-  }
-};
-
-export const generateSubtasks = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const todo = getTodoById(Number(id));
-    
-    if (!todo) return errorResponse(res, 404, 'Todo not found');
-
-    const subtasks = await generateSubtasksWithAI(todo);
-    return successResponse(res, 200, { subtasks }, 'Subtasks generated successfully');
-  } catch (error) {
-    return errorResponse(res, 500, 'Failed to generate subtasks', error.message);
+    // Return the specific AI error message so frontend can display it usefully
+    console.error('Chat controller error:', error.message);
+    return errorResponse(res, 500, 'AI service error', error.message);
   }
 };

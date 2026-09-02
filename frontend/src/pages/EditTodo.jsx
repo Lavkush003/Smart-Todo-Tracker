@@ -1,83 +1,80 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import TodoForm from '../components/TodoForm';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { fetchTodoById, updateTodo } from '../services/todoService';
 
 const EditTodo = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const todoId = searchParams.get('todoid');
-  const [initialValues, setInitialValues] = useState(null);
+  const todoId = searchParams.get('id') || searchParams.get('todoid');
+  const navigate = useNavigate();
+  const [todo, setTodo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const loadTodo = async () => {
-      setLoading(true);
-      setError('');
-
-      if (!todoId || Number.isNaN(Number(todoId)) || Number(todoId) <= 0) {
-        setError('Todo ID is required.');
+      if (!todoId) {
+        setError('Task ID is required.');
         setLoading(false);
         return;
       }
-
       try {
         const response = await fetchTodoById(Number(todoId));
-        setInitialValues({
-          title: response.data.title,
-          description: response.data.description || '',
-          status: response.data.status,
-          priority: response.data.priority,
-          due_date: response.data.due_date || '',
-        });
+        setTodo(response.data);
       } catch (err) {
-        if (err.response?.status === 404) {
-          setError('Todo not found.');
-        } else {
-          setError(err.response?.data?.message || 'Failed to load todo.');
-        }
+        setError('Failed to load task for editing.');
       } finally {
         setLoading(false);
       }
     };
-
     loadTodo();
   }, [todoId]);
 
   const handleSubmit = async (payload) => {
     setIsSubmitting(true);
     try {
-      await updateTodo(Number(todoId), payload);
-      navigate(`/todo?todoid=${todoId}`);
+      await updateTodo(todo.id, payload);
+      navigate(`/todo?id=${todo.id}`);
     } catch (err) {
-      alert(err?.response?.data?.message || 'Failed to update todo.');
+      alert('Failed to update task.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading) return <LoadingSpinner label="Loading todo..." />;
+  if (loading) return <LoadingSpinner label="Loading task details..." />;
 
-  if (error) {
+  if (error || !todo) {
     return (
       <div className="card p-8 text-center">
-        <p className="text-xl font-semibold text-[var(--text-strong)]">{error}</p>
-        <button type="button" className="primary-btn mt-5" onClick={() => navigate('/')}>Back to dashboard</button>
+        <p className="text-xl font-semibold text-[var(--text-strong)]">{error || 'Task not found'}</p>
+        <Link to="/" className="primary-btn mt-5 inline-flex">Back to dashboard</Link>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <header className="rounded-[2rem] border border-violet-200 bg-gradient-to-r from-amber-400/20 via-violet-500/10 to-cyan-500/20 p-6 sm:p-8">
-        <p className="text-xs font-bold uppercase tracking-[0.28em] text-violet-600">Update task</p>
-        <h1 className="mt-2 text-3xl font-bold text-[var(--text-strong)]">Refine your plan</h1>
+      <div className="flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="secondary-btn gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+      </div>
+      
+      <header className="rounded-[2rem] bg-[var(--panel-alt)] p-6 border border-[var(--border)] sm:p-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-violet-500">Edit Task</p>
+            <h1 className="mt-2 text-3xl font-bold text-[var(--text-strong)]">{todo.title}</h1>
+          </div>
+        </div>
       </header>
 
-      <TodoForm initialValues={initialValues} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitLabel="Save Changes" />
+      <TodoForm initialValues={todo} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitLabel="Save Changes" />
     </div>
   );
 };

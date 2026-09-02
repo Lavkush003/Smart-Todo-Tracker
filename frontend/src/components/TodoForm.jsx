@@ -3,51 +3,45 @@ import { useEffect, useState } from 'react';
 const defaultForm = {
   title: '',
   description: '',
-  status: 'pending',
+  status: 'todo',
   priority: 'medium',
+  category: 'Other',
+  tags: '', // string for input, array for api
   due_date: '',
+  estimated_time: '',
+  notes: '',
 };
 
 const suggestions = [
-  { label: 'Deep work', title: 'Complete the highest-impact task before noon', priority: 'high' },
-  { label: 'Follow up', title: 'Send a quick update to the team', priority: 'medium' },
-  { label: 'Personal', title: 'Book time for exercise or reset', priority: 'low' },
-  { label: 'Planning', title: 'Outline next steps for the project sprint', priority: 'medium' },
+  { label: 'Deep work', title: 'Complete the highest-impact task before noon', priority: 'urgent', category: 'Work' },
+  { label: 'Follow up', title: 'Send a quick update to the team', priority: 'medium', category: 'Work' },
+  { label: 'Personal', title: 'Book time for exercise or reset', priority: 'low', category: 'Personal' },
 ];
 
+const categories = ['Work', 'Personal', 'Study', 'Health', 'Projects', 'Other'];
+
 const TodoForm = ({ initialValues, onSubmit, isSubmitting, submitLabel = 'Save' }) => {
-  const [formData, setFormData] = useState(initialValues || defaultForm);
+  const [formData, setFormData] = useState(defaultForm);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    setFormData(initialValues || defaultForm);
+    if (initialValues) {
+      setFormData({
+        ...defaultForm,
+        ...initialValues,
+        tags: Array.isArray(initialValues.tags) ? initialValues.tags.join(', ') : initialValues.tags || '',
+      });
+    }
   }, [initialValues]);
 
   const validate = () => {
     const nextErrors = {};
-
     if (!formData.title?.trim()) {
       nextErrors.title = 'Title is required.';
-    } else if (formData.title.trim().length > 120) {
-      nextErrors.title = 'Title must be 120 characters or less.';
     }
-
-    if (formData.description && formData.description.length > 1000) {
-      nextErrors.description = 'Description must be 1000 characters or less.';
-    }
-
-    if (formData.status && !['pending', 'in_progress', 'completed'].includes(formData.status)) {
-      nextErrors.status = 'Please select a valid status.';
-    }
-
-    if (formData.priority && !['low', 'medium', 'high'].includes(formData.priority)) {
-      nextErrors.priority = 'Please select a valid priority.';
-    }
-
     if (formData.due_date && !/^\d{4}-\d{2}-\d{2}$/.test(formData.due_date)) {
       nextErrors.due_date = 'Due date must be in YYYY-MM-DD format.';
     }
-
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -63,6 +57,7 @@ const TodoForm = ({ initialValues, onSubmit, isSubmitting, submitLabel = 'Save' 
       ...prev,
       title: suggestion.title,
       priority: suggestion.priority,
+      category: suggestion.category,
     }));
     setErrors((prev) => ({ ...prev, title: '', priority: '' }));
   };
@@ -75,6 +70,7 @@ const TodoForm = ({ initialValues, onSubmit, isSubmitting, submitLabel = 'Save' 
       ...formData,
       title: formData.title.trim(),
       description: formData.description?.trim() || '',
+      tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
       due_date: formData.due_date || null,
     };
 
@@ -85,12 +81,8 @@ const TodoForm = ({ initialValues, onSubmit, isSubmitting, submitLabel = 'Save' 
     <form onSubmit={handleSubmit} className="smart-panel p-6 sm:p-8">
       <div className="mb-6 flex flex-col gap-4 border-b border-[var(--border)] pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.26em] text-violet-500">Smart composer</p>
-          <h2 className="mt-2 text-2xl font-bold text-[var(--text-strong)]">Plan the next win</h2>
-        </div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          Smart task flow active
+          <p className="text-xs font-bold uppercase tracking-[0.26em] text-violet-500">Taskora Builder</p>
+          <h2 className="mt-2 text-2xl font-bold text-[var(--text-strong)]">Plan your next move</h2>
         </div>
       </div>
 
@@ -119,18 +111,17 @@ const TodoForm = ({ initialValues, onSubmit, isSubmitting, submitLabel = 'Save' 
 
         <div className="md:col-span-2">
           <label className="label" htmlFor="description">Details</label>
-          <textarea id="description" name="description" value={formData.description} onChange={handleChange} rows={4} className="input" placeholder="Add clear context, links, or success notes" />
-          {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+          <textarea id="description" name="description" value={formData.description} onChange={handleChange} rows={2} className="input" placeholder="Add clear context, links, or success notes" />
         </div>
 
         <div>
           <label className="label" htmlFor="status">Status</label>
           <select id="status" name="status" value={formData.status} onChange={handleChange} className="input">
-            <option value="pending">Pending</option>
+            <option value="todo">Todo</option>
             <option value="in_progress">In Progress</option>
             <option value="completed">Completed</option>
+            <option value="archived">Archived</option>
           </select>
-          {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status}</p>}
         </div>
 
         <div>
@@ -139,14 +130,36 @@ const TodoForm = ({ initialValues, onSubmit, isSubmitting, submitLabel = 'Save' 
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
+            <option value="urgent">Urgent</option>
           </select>
-          {errors.priority && <p className="mt-1 text-sm text-red-600">{errors.priority}</p>}
         </div>
 
-        <div className="md:col-span-2">
+        <div>
+          <label className="label" htmlFor="category">Category</label>
+          <select id="category" name="category" value={formData.category} onChange={handleChange} className="input">
+            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className="label" htmlFor="tags">Tags (comma separated)</label>
+          <input id="tags" name="tags" value={formData.tags} onChange={handleChange} className="input" placeholder="e.g. #urgent, #project" />
+        </div>
+
+        <div>
+          <label className="label" htmlFor="estimated_time">Estimated Time</label>
+          <input id="estimated_time" name="estimated_time" value={formData.estimated_time} onChange={handleChange} className="input" placeholder="e.g. 2 hours" />
+        </div>
+
+        <div>
           <label className="label" htmlFor="due_date">Due date</label>
           <input id="due_date" name="due_date" type="date" value={formData.due_date || ''} onChange={handleChange} className="input" />
           {errors.due_date && <p className="mt-1 text-sm text-red-600">{errors.due_date}</p>}
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="label" htmlFor="notes">Notes</label>
+          <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} rows={2} className="input" placeholder="Any additional notes..." />
         </div>
       </div>
 
